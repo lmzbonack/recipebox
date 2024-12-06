@@ -1,4 +1,7 @@
 defmodule Myapp.Accounts.User do
+  @moduledoc """
+  Schema and changeset functions for the users table.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -10,6 +13,8 @@ defmodule Myapp.Accounts.User do
     field :confirmed_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
+
+    has_many :recipes, Myapp.Recipes.Recipe, foreign_key: :created_by_id
   end
 
   @doc """
