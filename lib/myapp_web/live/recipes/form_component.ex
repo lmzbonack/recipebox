@@ -87,7 +87,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
   defp save_recipe(socket, :new, recipe_params) do
     case Recipes.create_recipe(recipe_params, socket.assigns.current_user) do
       {:ok, recipe} ->
-        notify_parent({:saved, recipe})
+        notify_parent({:created, recipe})
         {:noreply,
          socket
          |> put_flash(:info, "Recipe created successfully")

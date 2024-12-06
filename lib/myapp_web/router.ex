@@ -72,6 +72,7 @@ defmodule MyappWeb.Router do
       live "/recipes/new", RecipeLive.Index, :new
       live "/recipes/:id/edit", RecipeLive.Index, :edit
       live "/recipes/:id", RecipeLive.Show, :show
+      live "/recipes/:id/details/edit", RecipeLive.Show, :edit
     end
   end
 

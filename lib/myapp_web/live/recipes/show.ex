@@ -10,6 +10,28 @@ defmodule MyappWeb.RecipeLive.Show do
   end
 
   @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :edit, _params) do
+    socket
+    |> assign(:page_title, "Edit #{socket.assigns.recipe.name}")
+  end
+
+  defp apply_action(socket, :show, _params) do
+    socket
+  end
+
+  @impl true
+  def handle_info({MyappWeb.RecipeLive.FormComponent, {:saved, recipe}}, socket) do
+    {:noreply,
+     socket
+     |> assign(recipe: Recipes.get_recipe!(recipe.id))
+     |> assign(page_title: recipe.name)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <.header class="mb-2">
@@ -18,7 +40,7 @@ defmodule MyappWeb.RecipeLive.Show do
       </.link>
       <:subtitle>By: <%= @recipe.author %></:subtitle>
       <:actions>
-        <.link patch={~p"/recipes/#{@recipe.id}/edit"}>
+        <.link patch={~p"/recipes/#{@recipe.id}/details/edit"}>
           <.button>Edit recipe</.button>
         </.link>
       </:actions>

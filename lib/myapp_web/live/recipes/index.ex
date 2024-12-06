@@ -34,6 +34,30 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   @impl true
+  def handle_info({MyappWeb.RecipeLive.FormComponent, {:saved, recipe}}, socket) do
+    # Get the updated recipe from the database
+    updated_recipe = Recipes.get_recipe!(recipe.id)
+
+    # update the recipe we edited only
+    updated_recipes = Enum.map(socket.assigns.recipes, fn r ->
+      if r.id == recipe.id, do: updated_recipe, else: r
+    end)
+
+    {:noreply,
+     socket
+     |> assign(:recipes, updated_recipes)}
+  end
+
+  @impl true
+  def handle_info({MyappWeb.RecipeLive.FormComponent, {:created, recipe}}, socket) do
+    updated_recipe = Recipes.get_recipe!(recipe.id)
+
+    {:noreply,
+     socket
+     |> assign(:recipes, [updated_recipe | socket.assigns.recipes])}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <.header>
