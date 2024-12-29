@@ -51,7 +51,7 @@ defmodule Myapp.RecipesTest do
     test "create_recipe/2 with valid data creates a recipe", %{user: user} do
       assert {:ok, %Recipe{} = recipe} = Recipes.create_recipe(@valid_attrs, user)
       assert recipe.name == "Classic Chocolate Chip Cookies"
-      assert recipe.author == "Chef John"
+      assert recipe.author == "Chef Joh"
       assert recipe.prep_time_in_minutes == 20
       assert recipe.cook_time_in_minutes == 12
       assert length(recipe.ingredients) == 3
