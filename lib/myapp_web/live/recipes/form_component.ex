@@ -7,8 +7,8 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
-        <:subtitle>Use this form to create or edit a recipe.</:subtitle>
+        {@title}
+        <:subtitle>Editing <%= @recipe.name %></:subtitle>
       </.header>
 
       <.simple_form
@@ -22,16 +22,84 @@ defmodule MyappWeb.RecipeLive.FormComponent do
         <.input field={@form[:author]} type="text" label="Author" />
         <.input field={@form[:prep_time_in_minutes]} type="number" label="Prep Time (minutes)" />
         <.input field={@form[:cook_time_in_minutes]} type="number" label="Cook Time (minutes)" />
-        <.input
-          field={@form[:ingredients]}
-          type="textarea"
-          label="Ingredients"
-        />
-        <.input
-          field={@form[:instructions]}
-          type="textarea"
-          label="Instructions"
-        />
+
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold leading-6 text-zinc-800">
+            Ingredients
+          </label>
+
+          <div :for={{ingredient, i} <- Enum.with_index(@ingredients)} class="space-y-2">
+            <.input
+              field={@form[:ingredient]}
+              name={"ingredient-#{i}"}
+              type="text"
+              value={ingredient}
+              phx-target={@myself}
+              phx-change="update_ingredient"
+              phx-value-index={i}
+              rows="2"
+            />
+            <div class="flex justify-end">
+              <button
+                type="button"
+                phx-click="remove_ingredient"
+                phx-value-index={i}
+                phx-target={@myself}
+                class="px-2 py-1 text-sm text-red-600 hover:text-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            phx-click="add_ingredient"
+            phx-target={@myself}
+            class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+          >
+            Add Ingredient
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold leading-6 text-zinc-800">
+            Instructions
+          </label>
+
+          <div :for={{instruction, i} <- Enum.with_index(@instructions)} class="space-y-2">
+            <.input
+              field={@form[:instruction]}
+              name={"instruction-#{i}"}
+              type="textarea"
+              value={instruction}
+              phx-target={@myself}
+              phx-change="update_instruction"
+              phx-value-index={i}
+            />
+            <div class="flex justify-end">
+              <button
+                type="button"
+                phx-click="remove_instruction"
+                phx-value-index={i}
+                phx-target={@myself}
+                class="px-2 py-1 text-sm text-red-600 hover:text-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            phx-click="add_instruction"
+            phx-target={@myself}
+            class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+          >
+            Add Instruction
+          </button>
+        </div>
+
         <.input field={@form[:external_link]} type="text" label="External Link (optional)" />
 
         <:actions>
@@ -48,12 +116,17 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:ingredients, recipe.ingredients || [""])
+     |> assign(:instructions, recipe.instructions || [""])
      |> assign_form(changeset)}
   end
 
   def handle_event("validate", %{"recipe" => recipe_params}, socket) do
-    # Convert textarea input to list for ingredients and instructions
-    recipe_params = parse_lists(recipe_params)
+    recipe_params =
+      Map.merge(recipe_params, %{
+        "ingredients" => Enum.filter(socket.assigns.ingredients, &(String.trim(&1) != "")),
+        "instructions" => Enum.filter(socket.assigns.instructions, &(String.trim(&1) != ""))
+      })
 
     changeset =
       socket.assigns.recipe
@@ -64,16 +137,56 @@ defmodule MyappWeb.RecipeLive.FormComponent do
   end
 
   def handle_event("save", %{"recipe" => recipe_params}, socket) do
-    # Convert textarea input to list for ingredients and instructions
-    recipe_params = parse_lists(recipe_params)
+    recipe_params =
+      Map.merge(recipe_params, %{
+        "ingredients" => Enum.filter(socket.assigns.ingredients, &(String.trim(&1) != "")),
+        "instructions" => Enum.filter(socket.assigns.instructions, &(String.trim(&1) != ""))
+      })
 
     save_recipe(socket, socket.assigns.action, recipe_params)
+  end
+
+  def handle_event("add_ingredient", _, socket) do
+    ingredients = socket.assigns.ingredients ++ [""]
+    {:noreply, assign(socket, :ingredients, ingredients)}
+  end
+
+  def handle_event("remove_ingredient", %{"index" => index}, socket) do
+    index = String.to_integer(index)
+    ingredients = List.delete_at(socket.assigns.ingredients, index)
+    ingredients = if ingredients == [], do: [""], else: ingredients
+    {:noreply, assign(socket, :ingredients, ingredients)}
+  end
+
+  def handle_event("update_ingredient", %{"index" => index, "value" => value}, socket) do
+    index = String.to_integer(index)
+    ingredients = List.update_at(socket.assigns.ingredients, index, fn _ -> value end)
+    {:noreply, assign(socket, :ingredients, ingredients)}
+  end
+
+  def handle_event("add_instruction", _, socket) do
+    instructions = socket.assigns.instructions ++ [""]
+    {:noreply, assign(socket, :instructions, instructions)}
+  end
+
+  def handle_event("remove_instruction", %{"index" => index}, socket) do
+    index = String.to_integer(index)
+    instructions = List.delete_at(socket.assigns.instructions, index)
+    instructions = if instructions == [], do: [""], else: instructions
+    {:noreply, assign(socket, :instructions, instructions)}
+  end
+
+  def handle_event("update_instruction", %{"index" => index, "value" => value}, socket) do
+    index = String.to_integer(index)
+    instructions = List.update_at(socket.assigns.instructions, index, fn _ -> value end)
+    {:noreply, assign(socket, :instructions, instructions)}
   end
 
   defp save_recipe(socket, :edit, recipe_params) do
     case Recipes.update_recipe(socket.assigns.recipe, recipe_params) do
       {:ok, recipe} ->
         notify_parent({:saved, recipe})
+
         {:noreply,
          socket
          |> put_flash(:info, "Recipe updated successfully")
@@ -88,6 +201,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     case Recipes.create_recipe(recipe_params, socket.assigns.current_user) do
       {:ok, recipe} ->
         notify_parent({:created, recipe})
+
         {:noreply,
          socket
          |> put_flash(:info, "Recipe created successfully")
@@ -103,10 +217,4 @@ defmodule MyappWeb.RecipeLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
-
-  defp parse_lists(%{"ingredients" => ingredients, "instructions" => instructions} = params) do
-    params
-    |> Map.put("ingredients", String.split(ingredients, "\n", trim: true))
-    |> Map.put("instructions", String.split(instructions, "\n", trim: true))
-  end
 end
