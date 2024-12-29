@@ -12,10 +12,12 @@ Repo.delete_all(Recipe)
 Repo.delete_all(User)
 
 # Create a user using proper registration
-{:ok, user} = Accounts.register_user(%{
-  email: "chef@example.com",
-  password: "password123456",  # Must be at least 12 characters based on your validation
-})
+{:ok, user} =
+  Accounts.register_user(%{
+    email: "chef@example.com",
+    # Must be at least 12 characters based on your validation
+    password: "password123456"
+  })
 
 # Create two recipes
 recipes = [
@@ -78,4 +80,4 @@ Enum.each(recipes, fn recipe ->
   |> Repo.insert!()
 end)
 
-IO.puts "Seed data inserted successfully!"
+IO.puts("Seed data inserted successfully!")

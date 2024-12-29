@@ -8,7 +8,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     <div>
       <.header>
         {@title}
-        <:subtitle>Editing <%= @recipe.name %></:subtitle>
+        <:subtitle>Editing {@recipe.name}</:subtitle>
       </.header>
 
       <.simple_form

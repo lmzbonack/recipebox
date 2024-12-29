@@ -39,9 +39,10 @@ defmodule MyappWeb.RecipeLive.Index do
     updated_recipe = Recipes.get_recipe!(recipe.id)
 
     # update the recipe we edited only
-    updated_recipes = Enum.map(socket.assigns.recipes, fn r ->
-      if r.id == recipe.id, do: updated_recipe, else: r
-    end)
+    updated_recipes =
+      Enum.map(socket.assigns.recipes, fn r ->
+        if r.id == recipe.id, do: updated_recipe, else: r
+      end)
 
     {:noreply,
      socket
@@ -61,9 +62,12 @@ defmodule MyappWeb.RecipeLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      <%= @page_title %>
+      {@page_title}
       <:actions>
-        <.link patch={~p"/recipes/new"} class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700">
+        <.link
+          patch={~p"/recipes/new"}
+          class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+        >
           New Recipe
         </.link>
       </:actions>
@@ -74,10 +78,10 @@ defmodule MyappWeb.RecipeLive.Index do
       rows={@recipes}
       row_click={fn recipe -> JS.navigate(~p"/recipes/#{recipe.id}") end}
     >
-      <:col :let={recipe} label="Name"><%= recipe.name %></:col>
-      <:col :let={recipe} label="Author"><%= recipe.author %></:col>
-      <:col :let={recipe} label="Prep Time"><%= recipe.prep_time_in_minutes %> min</:col>
-      <:col :let={recipe} label="Cook Time"><%= recipe.cook_time_in_minutes %> min</:col>
+      <:col :let={recipe} label="Name">{recipe.name}</:col>
+      <:col :let={recipe} label="Author">{recipe.author}</:col>
+      <:col :let={recipe} label="Prep Time">{recipe.prep_time_in_minutes} min</:col>
+      <:col :let={recipe} label="Cook Time">{recipe.cook_time_in_minutes} min</:col>
       <:action :let={recipe}>
         <.link patch={~p"/recipes/#{recipe.id}/edit"}>Edit</.link>
       </:action>

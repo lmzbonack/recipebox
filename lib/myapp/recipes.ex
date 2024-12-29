@@ -48,7 +48,6 @@ defmodule Myapp.Recipes do
     |> Repo.insert()
   end
 
-
   @doc """
   Updates a recipe.
   """
