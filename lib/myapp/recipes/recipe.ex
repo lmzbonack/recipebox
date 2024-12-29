@@ -15,15 +15,21 @@ defmodule Myapp.Recipes.Recipe do
     timestamps(type: :utc_datetime)
   end
 
-    def changeset(recipe, attrs) do
+  def changeset(recipe, attrs) do
     recipe
-    |> cast(attrs, [:name, :author, :external_link, :prep_time_in_minutes,
-                   :cook_time_in_minutes, :ingredients, :instructions, :created_by_id])
+    |> cast(attrs, [
+      :name,
+      :author,
+      :external_link,
+      :prep_time_in_minutes,
+      :cook_time_in_minutes,
+      :ingredients,
+      :instructions,
+      :created_by_id
+    ])
     |> validate_required([:name, :author, :ingredients, :instructions])
     |> unique_constraint(:name)
     |> validate_number(:prep_time_in_minutes, greater_than: 0)
     |> validate_number(:cook_time_in_minutes, greater_than: 0)
   end
-
-
 end
