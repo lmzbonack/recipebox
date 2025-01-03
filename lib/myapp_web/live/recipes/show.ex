@@ -40,9 +40,11 @@ defmodule MyappWeb.RecipeLive.Show do
       </.link>
       <:subtitle>By: {@recipe.author}</:subtitle>
       <:actions>
-        <.link patch={~p"/recipes/#{@recipe.id}/details/edit"}>
-          <.button>Edit recipe</.button>
-        </.link>
+        <%= if Recipes.can_edit_recipe?(@current_user, @recipe) do %>
+          <.link patch={~p"/recipes/#{@recipe.id}/details/edit"}>
+            <.button>Edit recipe</.button>
+          </.link>
+        <% end %>
       </:actions>
     </.header>
 

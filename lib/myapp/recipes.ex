@@ -80,4 +80,8 @@ defmodule Myapp.Recipes do
     |> Repo.all()
     |> Repo.preload(:created_by)
   end
+
+  def can_edit_recipe?(%Myapp.Accounts.User{id: user_id}, %Recipe{created_by_id: created_by_id}) do
+    user_id == created_by_id
+  end
 end

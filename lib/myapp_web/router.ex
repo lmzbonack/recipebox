@@ -13,6 +13,10 @@ defmodule MyappWeb.Router do
     plug :fetch_current_user
   end
 
+  pipeline :recipe_owner do
+    plug MyappWeb.Plugs.RecipeOwner
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -70,8 +74,14 @@ defmodule MyappWeb.Router do
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
       live "/recipes", RecipeLive.Index, :index
       live "/recipes/new", RecipeLive.Index, :new
-      live "/recipes/:id/edit", RecipeLive.Index, :edit
       live "/recipes/:id", RecipeLive.Show, :show
+    end
+
+    # Separate live_session for routes requiring recipe ownership
+    live_session :recipe_owner,
+      on_mount: [{MyappWeb.UserAuth, :ensure_authenticated}] do
+      pipe_through [:recipe_owner]
+      live "/recipes/:id/edit", RecipeLive.Index, :edit
       live "/recipes/:id/details/edit", RecipeLive.Show, :edit
     end
   end
