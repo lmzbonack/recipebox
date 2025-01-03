@@ -7,6 +7,7 @@ defmodule MyappWeb.Plugs.RecipeOwner do
   def init(opts), do: opts
 
   def call(conn, _opts) do
+    IO.puts("RecipeOwner plug called")
     with %{"id" => id} <- conn.path_params,
          recipe when not is_nil(recipe) <- Recipes.get_recipe(id),
          %{current_user: current_user} when not is_nil(current_user) <- conn.assigns do
