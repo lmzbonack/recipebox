@@ -32,6 +32,15 @@ defmodule MyappWeb.RecipeLive.Show do
   end
 
   @impl true
+  def handle_event("delete_recipe", _, socket) do
+    Recipes.delete_recipe(socket.assigns.recipe)
+    {:noreply,
+     socket
+     |> put_flash(:info, "Recipe deleted successfully")
+     |> push_navigate(to: ~p"/recipes")}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <.header class="mb-2">
@@ -42,8 +51,16 @@ defmodule MyappWeb.RecipeLive.Show do
       <:actions>
         <%= if Recipes.can_edit_recipe?(@current_user, @recipe) do %>
           <.link patch={~p"/recipes/#{@recipe.id}/details/edit"}>
-            <.button>Edit recipe</.button>
+            <.button>Edit</.button>
           </.link>
+        <% end %>
+        <%= if Recipes.can_edit_recipe?(@current_user, @recipe) do %>
+          <.button
+            phx-click="delete_recipe"
+            data-confirm="Are you sure you want to delete this recipe?"
+          >
+            Delete
+          </.button>
         <% end %>
       </:actions>
     </.header>
