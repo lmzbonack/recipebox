@@ -83,7 +83,9 @@ defmodule MyappWeb.RecipeLive.Index do
       <:col :let={recipe} label="Prep Time">{recipe.prep_time_in_minutes} min</:col>
       <:col :let={recipe} label="Cook Time">{recipe.cook_time_in_minutes} min</:col>
       <:action :let={recipe}>
-        <.link patch={~p"/recipes/#{recipe.id}/edit"}>Edit</.link>
+        <%= if Recipes.can_edit_recipe?(@current_user, recipe) do %>
+          <.link patch={~p"/recipes/#{recipe.id}/edit"}>Edit</.link>
+        <% end %>
       </:action>
     </.table>
 
