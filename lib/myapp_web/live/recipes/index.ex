@@ -87,6 +87,17 @@ defmodule MyappWeb.RecipeLive.Index do
           <.link patch={~p"/recipes/#{recipe.id}/edit"}>Edit</.link>
         <% end %>
       </:action>
+      <:action :let={recipe}>
+        <%= if Recipes.can_edit_recipe?(@current_user, recipe) do %>
+          <.button
+            phx-click="delete_recipe"
+            phx-value-id={recipe.id}
+            data-confirm="Are you sure you want to delete this recipe?"
+          >
+            Delete
+          </.button>
+        <% end %>
+      </:action>
     </.table>
 
     <%= if @live_action in [:new, :edit] do %>
@@ -111,5 +122,16 @@ defmodule MyappWeb.RecipeLive.Index do
     {:ok, _} = Recipes.delete_recipe(recipe)
 
     {:noreply, assign(socket, recipes: Recipes.list_recipes())}
+  end
+
+  @impl true
+  def handle_event("delete_recipe", %{"id" => id}, socket) do
+    recipe = Recipes.get_recipe!(id)
+    {:ok, _} = Recipes.delete_recipe(recipe)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Recipe deleted successfully")
+     |> assign(:recipes, Recipes.list_recipes())}
   end
 end

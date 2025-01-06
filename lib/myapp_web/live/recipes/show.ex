@@ -34,6 +34,7 @@ defmodule MyappWeb.RecipeLive.Show do
   @impl true
   def handle_event("delete_recipe", _, socket) do
     Recipes.delete_recipe(socket.assigns.recipe)
+
     {:noreply,
      socket
      |> put_flash(:info, "Recipe deleted successfully")
@@ -56,6 +57,7 @@ defmodule MyappWeb.RecipeLive.Show do
         <% end %>
         <%= if Recipes.can_edit_recipe?(@current_user, @recipe) do %>
           <.button
+            id="delete-recipe"
             phx-click="delete_recipe"
             data-confirm="Are you sure you want to delete this recipe?"
           >

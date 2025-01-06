@@ -158,10 +158,22 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     {:noreply, assign(socket, :ingredients, ingredients)}
   end
 
-  def handle_event("update_ingredient", %{"index" => index, "value" => value}, socket) do
-    index = String.to_integer(index)
-    ingredients = List.update_at(socket.assigns.ingredients, index, fn _ -> value end)
-    {:noreply, assign(socket, :ingredients, ingredients)}
+  def handle_event("update_ingredient", params, socket) do
+    case params do
+      %{"_target" => [target]} ->
+        index =
+          target
+          |> String.replace("ingredient-", "")
+          |> String.to_integer()
+
+        value = params[target]
+
+        ingredients = List.update_at(socket.assigns.ingredients, index, fn _ -> value end)
+        {:noreply, assign(socket, :ingredients, ingredients)}
+
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("add_instruction", _, socket) do
@@ -176,10 +188,22 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     {:noreply, assign(socket, :instructions, instructions)}
   end
 
-  def handle_event("update_instruction", %{"index" => index, "value" => value}, socket) do
-    index = String.to_integer(index)
-    instructions = List.update_at(socket.assigns.instructions, index, fn _ -> value end)
-    {:noreply, assign(socket, :instructions, instructions)}
+  def handle_event("update_instruction", params, socket) do
+    case params do
+      %{"_target" => [target]} ->
+        index =
+          target
+          |> String.replace("instruction-", "")
+          |> String.to_integer()
+
+        value = params[target]
+
+        instructions = List.update_at(socket.assigns.instructions, index, fn _ -> value end)
+        {:noreply, assign(socket, :instructions, instructions)}
+
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   defp save_recipe(socket, :edit, recipe_params) do
