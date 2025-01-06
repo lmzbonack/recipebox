@@ -87,5 +87,36 @@ defmodule MyappWeb.Plugs.RecipeOwnerTest do
       assert path == ~p"/recipes"
       assert flash["error"] == "You can only edit recipes you created"
     end
+
+    test "allows owner to delete their recipe show page", %{
+      conn: conn,
+      owner: owner,
+      recipe: recipe
+    } do
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(owner)
+        |> live(~p"/recipes/#{recipe.id}")
+
+      assert lv
+             |> element("#delete-recipe")
+             |> render_click()
+
+      assert_redirected(lv, ~p"/recipes")
+      refute Recipes.get_recipe(recipe.id)
+    end
+
+    test "does not show delete button for non-owner show page", %{
+      conn: conn,
+      other_user: other_user,
+      recipe: recipe
+    } do
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(other_user)
+        |> live(~p"/recipes/#{recipe.id}")
+
+      refute has_element?(lv, "#delete-recipe")
+    end
   end
 end
