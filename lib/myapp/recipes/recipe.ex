@@ -12,6 +12,10 @@ defmodule Myapp.Recipes.Recipe do
     field :instructions, {:array, :string}
     belongs_to :created_by, Myapp.Accounts.User
 
+    many_to_many :shopping_lists, Myapp.ShoppingLists.ShoppingList,
+      join_through: Myapp.ShoppingListRecipe.ShoppingListRecipe,
+      on_replace: :delete
+
     timestamps(type: :utc_datetime)
   end
 
