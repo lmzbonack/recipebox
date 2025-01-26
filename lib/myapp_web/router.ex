@@ -17,6 +17,10 @@ defmodule MyappWeb.Router do
     plug MyappWeb.Plugs.RecipeOwner
   end
 
+  pipeline :sl_owner do
+    plug MyappWeb.Plugs.ShoppingListOwner
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -75,14 +79,28 @@ defmodule MyappWeb.Router do
       live "/recipes", RecipeLive.Index, :index
       live "/recipes/new", RecipeLive.Index, :new
       live "/recipes/:id", RecipeLive.Show, :show
+      live "/shopping-lists", ShoppingListsLive.Index, :index
+      live "/shopping-lists/new", ShoppingListsLive.Index, :new
     end
+  end
 
-    # Separate live_session for routes requiring recipe ownership
+  scope "/", MyappWeb do
+    pipe_through [:browser, :require_authenticated_user, :recipe_owner]
+
     live_session :recipe_owner,
       on_mount: [{MyappWeb.UserAuth, :ensure_authenticated}] do
-      pipe_through [:recipe_owner]
       live "/recipes/:id/edit", RecipeLive.Index, :edit
       live "/recipes/:id/details/edit", RecipeLive.Show, :edit
+    end
+  end
+
+  scope "/", MyappWeb do
+    pipe_through [:browser, :require_authenticated_user, :sl_owner]
+
+    live_session :sl_owner,
+      on_mount: [{MyappWeb.UserAuth, :ensure_authenticated}] do
+      live "/shopping-lists/:id/edit", ShoppingListsLive.Index, :edit
+      live "/shopping-lists/:id", ShoppingListsLive.Show, :show
     end
   end
 
