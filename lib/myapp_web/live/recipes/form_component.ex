@@ -8,7 +8,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     <div>
       <.header>
         {@title}
-        <:subtitle>Editing {@recipe.name}</:subtitle>
+        <:subtitle :if={@recipe.name}>Editing {@recipe.name}</:subtitle>
       </.header>
 
       <.simple_form
@@ -207,17 +207,24 @@ defmodule MyappWeb.RecipeLive.FormComponent do
   end
 
   defp save_recipe(socket, :edit, recipe_params) do
-    case Recipes.update_recipe(socket.assigns.recipe, recipe_params) do
-      {:ok, recipe} ->
-        notify_parent({:saved, recipe})
+    if Recipes.can_edit_recipe?(socket.assigns.current_user, socket.assigns.recipe) do
+      case Recipes.update_recipe(socket.assigns.recipe, recipe_params) do
+        {:ok, recipe} ->
+          notify_parent({:saved, recipe})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Recipe updated successfully")
-         |> push_navigate(to: socket.assigns.patch)}
+          {:noreply,
+           socket
+           |> put_flash(:info, "Recipe updated successfully")
+           |> push_navigate(to: socket.assigns.patch)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply, assign_form(socket, changeset)}
+      end
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "You can only edit recipes you created")
+       |> push_navigate(to: ~p"/recipes")}
     end
   end
 
