@@ -6,31 +6,37 @@ defmodule MyappWeb.RecipeLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    recipes = Recipes.list_recipes()
-    {:ok, assign(socket, recipes: recipes)}
+    recipes = Recipes.list_recipes(1, 25)
+    {:ok, assign(socket, page: 1, per_page: 25, recipes: recipes)}
   end
 
   @impl true
+  @spec handle_params(nil | maybe_improper_list() | map(), any(), map()) :: {:noreply, map()}
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    page = (params["page"] || "1") |> String.to_integer()
+    {:noreply, apply_action(socket, socket.assigns.live_action, params, page)}
   end
 
-  defp apply_action(socket, :new, _params) do
+  defp apply_action(socket, :new, _params, _page) do
     socket
     |> assign(:page_title, "New Recipe")
     |> assign(:recipe, %Recipe{})
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"id" => id}, _page) do
     socket
     |> assign(:page_title, "Edit Recipe")
     |> assign(:recipe, Recipes.get_recipe!(id))
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :index, _params, page) do
+    recipes = Recipes.list_recipes(page, socket.assigns.per_page)
+
     socket
     |> assign(:page_title, "Recipes")
     |> assign(:recipe, nil)
+    |> assign(:recipes, recipes)
+    |> assign(:page, page)
   end
 
   @impl true
@@ -100,6 +106,25 @@ defmodule MyappWeb.RecipeLive.Index do
       </:action>
     </.table>
 
+    <div class="flex justify-center mt-4">
+      <.link
+        :if={@page > 1}
+        patch={~p"/recipes?page=#{@page - 1}"}
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+      >
+        Previous
+      </.link>
+      <span class="px-4 py-2 text-sm font-medium text-gray-700">
+        Page {@page}
+      </span>
+      <.link
+        patch={~p"/recipes?page=#{@page + 1}"}
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+      >
+        Next
+      </.link>
+    </div>
+
     <%= if @live_action in [:new, :edit] do %>
       <.modal :if={@recipe} id="recipe-modal" show on_cancel={JS.patch(~p"/recipes")}>
         <%!-- I want someway to tell this component what to expect --%>
@@ -125,6 +150,6 @@ defmodule MyappWeb.RecipeLive.Index do
     {:noreply,
      socket
      |> put_flash(:info, "Recipe deleted successfully")
-     |> assign(:recipes, Recipes.list_recipes())}
+     |> assign(:recipes, Recipes.list_recipes(socket.assigns.page, socket.assigns.per_page))}
   end
 end

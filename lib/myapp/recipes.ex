@@ -11,8 +11,12 @@ defmodule Myapp.Recipes do
   @doc """
   Returns the list of recipes.
   """
-  def list_recipes do
+
+  def list_recipes(page \\ 1, per_page \\ 25) do
     Recipe
+    |> order_by([r], desc: r.inserted_at)
+    |> limit(^per_page)
+    |> offset(^((page - 1) * per_page))
     |> Repo.all()
     |> Repo.preload(:created_by)
   end
