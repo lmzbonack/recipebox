@@ -5,6 +5,7 @@
 alias Myapp.Repo
 alias Myapp.Accounts
 alias Myapp.Recipes.Recipe
+alias Myapp.ShoppingLists
 alias Myapp.Accounts.User
 
 # Clear existing data
@@ -75,9 +76,25 @@ recipes = [
   }
 ]
 
-Enum.each(recipes, fn recipe ->
-  Recipe.changeset(%Recipe{}, recipe)
-  |> Repo.insert!()
-end)
+[cookie_recipe, _carbonara_recipe] =
+  Enum.map(recipes, fn recipe ->
+    Recipe.changeset(%Recipe{}, recipe)
+    |> Repo.insert!()
+  end)
+
+# Create a shopping list for the cookies
+{:ok, shopping_list} =
+  ShoppingLists.create_shopping_list(
+    %{
+      name: "Cookie Shopping List",
+      ingredients: [
+        "Extra Chocolate chips for eating"
+      ]
+    },
+    user
+  )
+
+# Add the cookie recipe to the shopping list
+ShoppingLists.add_recipe_to_shopping_list(shopping_list, cookie_recipe)
 
 IO.puts("Seed data inserted successfully!")
