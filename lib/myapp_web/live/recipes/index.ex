@@ -56,15 +56,6 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   @impl true
-  def handle_info({MyappWeb.RecipeLive.FormComponent, {:created, recipe}}, socket) do
-    updated_recipe = Recipes.get_recipe!(recipe.id)
-
-    {:noreply,
-     socket
-     |> assign(:recipes, [updated_recipe | socket.assigns.recipes])}
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <.header>
@@ -127,7 +118,6 @@ defmodule MyappWeb.RecipeLive.Index do
 
     <%= if @live_action in [:new, :edit] do %>
       <.modal :if={@recipe} id="recipe-modal" show on_cancel={JS.patch(~p"/recipes")}>
-        <%!-- I want someway to tell this component what to expect --%>
         <.live_component
           module={MyappWeb.RecipeLive.FormComponent}
           id={@recipe.id || :new}
