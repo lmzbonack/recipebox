@@ -24,6 +24,7 @@ defmodule MyappWeb.RecipeLive.Show do
     socket =
       if params["action"] == "add_to_shopping_list" do
         shopping_lists = ShoppingLists.list_user_shopping_lists(socket.assigns.current_user)
+
         socket
         |> assign(:shopping_lists, shopping_lists)
         |> assign(:show_select_modal, true)
@@ -148,11 +149,7 @@ defmodule MyappWeb.RecipeLive.Show do
     <% end %>
 
     <%= if @show_select_modal do %>
-      <.modal
-        id="select-shopping-list-modal"
-        show
-        on_cancel={JS.patch(~p"/recipes/#{@recipe.id}")}
-      >
+      <.modal id="select-shopping-list-modal" show on_cancel={JS.patch(~p"/recipes/#{@recipe.id}")}>
         <div class="px-6">
           <h2 class="text-lg font-semibold leading-8 text-zinc-800 mb-4">
             Select a Shopping List
@@ -160,10 +157,7 @@ defmodule MyappWeb.RecipeLive.Show do
 
           <%= if Enum.empty?(@shopping_lists) do %>
             <p class="text-zinc-600 mb-4">You don't have any shopping lists yet.</p>
-            <.link
-              navigate={~p"/shopping-lists/new"}
-              class="text-blue-600 hover:underline"
-            >
+            <.link navigate={~p"/shopping-lists/new"} class="text-blue-600 hover:underline">
               Create a new shopping list
             </.link>
           <% else %>
