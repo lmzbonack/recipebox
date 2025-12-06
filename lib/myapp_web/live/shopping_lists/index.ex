@@ -103,6 +103,7 @@ defmodule MyappWeb.ShoppingListsLive.Index do
         <.button
           phx-click="delete_shopping_list"
           phx-value-id={shopping_list.id}
+          class="bg-red-500 text-white"
           data-confirm="Are you sure you want to delete this shopping list?"
         >
           Delete
