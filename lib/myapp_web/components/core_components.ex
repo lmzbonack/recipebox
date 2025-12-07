@@ -227,12 +227,16 @@ defmodule MyappWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(assigns) do
+    has_custom_bg = assigns.class && String.contains?(assigns.class, "bg-")
+    default_bg_classes = if has_custom_bg, do: "", else: "bg-zinc-900 hover:bg-zinc-700"
+
     ~H"""
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
+        "phx-submit-loading:opacity-75 rounded-lg py-2 px-3",
         "text-sm font-semibold leading-6 text-white active:text-white/80",
+        default_bg_classes,
         @class
       ]}
       {@rest}

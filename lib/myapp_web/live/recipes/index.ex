@@ -24,9 +24,11 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}, _page) do
+    recipe = Recipes.get_recipe!(id)
+
     socket
-    |> assign(:page_title, "Edit Recipe")
-    |> assign(:recipe, Recipes.get_recipe!(id))
+    |> assign(:recipe, recipe)
+    |> assign(:page_title, "Edit #{recipe.name}")
   end
 
   defp apply_action(socket, :index, _params, page) do
@@ -59,7 +61,7 @@ defmodule MyappWeb.RecipeLive.Index do
   def render(assigns) do
     ~H"""
     <.header>
-      {@page_title}
+      Recipes
       <:actions>
         <.link
           patch={~p"/recipes/new"}
@@ -122,7 +124,7 @@ defmodule MyappWeb.RecipeLive.Index do
         <.live_component
           module={MyappWeb.RecipeLive.FormComponent}
           id={@recipe.id || :new}
-          title={@page_title}
+          title={"Edit #{@recipe.name}"}
           action={@live_action}
           recipe={@recipe}
           patch={~p"/recipes"}
