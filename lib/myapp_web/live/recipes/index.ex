@@ -89,6 +89,7 @@ defmodule MyappWeb.RecipeLive.Index do
           <.button
             phx-click="delete_recipe"
             phx-value-id={recipe.id}
+            class="bg-red-500 text-white"
             data-confirm="Are you sure you want to delete this recipe?"
           >
             Delete
