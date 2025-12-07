@@ -8,7 +8,6 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     <div>
       <.header>
         {@title}
-        <:subtitle :if={@recipe.name}>Editing {@recipe.name}</:subtitle>
       </.header>
 
       <.simple_form
