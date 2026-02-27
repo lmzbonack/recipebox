@@ -9,6 +9,17 @@ defmodule Myapp.Recipes do
   alias Myapp.Accounts.User
 
   @doc """
+  Returns the newest recipes limited by the given count.
+  """
+  def list_newest(limit) do
+    Recipe
+    |> order_by([r], desc: r.inserted_at)
+    |> limit(^limit)
+    |> Repo.all()
+    |> Repo.preload(:created_by)
+  end
+
+  @doc """
   Returns the list of recipes.
   """
 
