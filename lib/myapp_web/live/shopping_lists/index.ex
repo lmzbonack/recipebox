@@ -33,11 +33,6 @@ defmodule MyappWeb.ShoppingListsLive.Index do
     |> assign(:shopping_list, nil)
   end
 
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Your Shopping Lists")
-  end
-
   @impl true
   def handle_event("delete_shopping_list", %{"id" => id}, socket) do
     sl = ShoppingLists.get_shopping_list!(id)

@@ -30,6 +30,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
           <div :for={{ingredient, i} <- Enum.with_index(@ingredients)} class="space-y-2">
             <.input
               field={@form[:ingredient]}
+              id={"recipe_ingredient-#{i}"}
               name={"ingredient-#{i}"}
               type="text"
               value={ingredient}
@@ -69,6 +70,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
           <div :for={{instruction, i} <- Enum.with_index(@instructions)} class="space-y-2">
             <.input
               field={@form[:instruction]}
+              id={"recipe_instruction-#{i}"}
               name={"instruction-#{i}"}
               type="textarea"
               value={instruction}
