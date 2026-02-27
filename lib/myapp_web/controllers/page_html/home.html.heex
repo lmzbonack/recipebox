@@ -1,4 +1,42 @@
-<.flash_group flash={@flash} />
-<div class="left-[40rem] fixed inset-y-0 right-0 z-0 hidden lg:block xl:left-[50rem]">
-  <p>Home Page</p>
+<div class="mx-auto max-w-2xl py-12">
+  <div class="text-center mb-12">
+    <h1 class="text-4xl font-bold text-zinc-900 mb-2">
+      <%= if @user do %>
+        Welcome back, {@user.name}!
+      <% else %>
+        Welcome to RecipeBox
+      <% end %>
+    </h1>
+    <p class="text-lg text-zinc-600">
+      <%= if @user do %>
+        Check out your latest recipes below
+      <% else %>
+        Your personal recipe collection
+      <% end %>
+    </p>
+  </div>
+
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-zinc-800 mb-4">Recent Recipes</h2>
+
+    <%= if Enum.empty?(@recipes) do %>
+      <p class="text-zinc-500 text-center py-8">No recipes yet</p>
+    <% else %>
+      <ul class="space-y-3">
+        <%= for recipe <- @recipes do %>
+          <li>
+            <a
+              href={~p"/recipes/#{recipe.id}"}
+              class="block p-4 bg-white border border-zinc-200 rounded-lg hover:border-zinc-400 hover:shadow-sm transition-all"
+            >
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-zinc-900">{recipe.name}</span>
+                <span class="text-sm text-zinc-500">by {recipe.author}</span>
+              </div>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
 </div>
