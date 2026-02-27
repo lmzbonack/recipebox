@@ -17,7 +17,7 @@ defmodule MyappWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import MyappWeb.Gettext
+  use Gettext, backend: MyappWeb.Gettext
 
   @doc """
   Renders a modal.
@@ -227,8 +227,15 @@ defmodule MyappWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(assigns) do
-    has_custom_bg = assigns.class && String.contains?(assigns.class, "bg-")
-    default_bg_classes = if has_custom_bg, do: "", else: "bg-zinc-900 hover:bg-zinc-700"
+    assigns =
+      assign(
+        assigns,
+        :default_bg_classes,
+        if(assigns.class && String.contains?(assigns.class, "bg-"),
+          do: "",
+          else: "bg-zinc-900 hover:bg-zinc-700"
+        )
+      )
 
     ~H"""
     <button
@@ -236,7 +243,7 @@ defmodule MyappWeb.CoreComponents do
       class={[
         "phx-submit-loading:opacity-75 rounded-lg py-2 px-3",
         "text-sm font-semibold leading-6 text-white active:text-white/80",
-        default_bg_classes,
+        @default_bg_classes,
         @class
       ]}
       {@rest}
