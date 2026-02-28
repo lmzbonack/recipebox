@@ -33,6 +33,23 @@ defmodule Myapp.Recipes do
   end
 
   @doc """
+  Searches recipes using FTS5 full-text search.
+  Returns recipes matching the query ordered by relevance.
+  """
+  def search_recipes(query) when is_binary(query) and query != "" do
+    query = String.trim(query)
+
+    from(r in Recipe)
+    |> join(:inner, [r], fts in fragment("recipes_fts"), on: fts.rowid == r.rowid)
+    |> where([r, fts], fragment("recipes_fts MATCH ?", ^query))
+    |> order_by([r, fts], asc: fragment("bm25(recipes_fts)"))
+    |> Repo.all()
+    |> Repo.preload(:created_by)
+  end
+
+  def search_recipes(_query), do: []
+
+  @doc """
   Gets a single recipe.
   Returns nil if the Recipe does not exist.
   """

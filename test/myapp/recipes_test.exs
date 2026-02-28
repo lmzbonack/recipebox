@@ -100,5 +100,134 @@ defmodule Myapp.RecipesTest do
       assert recipe1 in user_recipes
       assert recipe2 in user_recipes
     end
+
+    test "search_recipes/1 returns recipes matching name" do
+      user = user_fixture()
+
+      recipe_attrs = %{
+        name: "Chocolate Cake",
+        author: "Chef John",
+        prep_time_in_minutes: 30,
+        cook_time_in_minutes: 45,
+        ingredients: ["flour", "sugar", "cocoa"],
+        instructions: ["Mix", "Bake"]
+      }
+
+      {:ok, _recipe} = Recipes.create_recipe(recipe_attrs, user)
+
+      results = Recipes.search_recipes("chocolate")
+      assert length(results) == 1
+      assert hd(results).name == "Chocolate Cake"
+    end
+
+    test "search_recipes/1 returns recipes matching author" do
+      user = user_fixture()
+
+      recipe_attrs = %{
+        name: "Some Recipe",
+        author: "Gordon Ramsay",
+        prep_time_in_minutes: 30,
+        cook_time_in_minutes: 45,
+        ingredients: ["ingredient"],
+        instructions: ["step"]
+      }
+
+      {:ok, _recipe} = Recipes.create_recipe(recipe_attrs, user)
+
+      results = Recipes.search_recipes("gordon")
+      assert length(results) == 1
+      assert hd(results).author == "Gordon Ramsay"
+    end
+
+    test "search_recipes/1 returns recipes matching ingredients" do
+      user = user_fixture()
+
+      recipe_attrs = %{
+        name: "Pasta Carbonara",
+        author: "Chef Mario",
+        prep_time_in_minutes: 15,
+        cook_time_in_minutes: 20,
+        ingredients: ["spaghetti", "eggs", "bacon", "parmesan"],
+        instructions: ["Cook pasta", "Mix eggs and cheese"]
+      }
+
+      {:ok, _recipe} = Recipes.create_recipe(recipe_attrs, user)
+
+      results = Recipes.search_recipes("bacon")
+      assert length(results) == 1
+      assert "bacon" in hd(results).ingredients
+    end
+
+    test "search_recipes/1 returns empty list for empty query" do
+      assert Recipes.search_recipes("") == []
+      assert Recipes.search_recipes(nil) == []
+    end
+
+    test "search_recipes/1 is case insensitive" do
+      user = user_fixture()
+
+      recipe_attrs = %{
+        name: "ITALIAN PASTA",
+        author: "Chef Luigi",
+        prep_time_in_minutes: 15,
+        cook_time_in_minutes: 20,
+        ingredients: ["pasta"],
+        instructions: ["Cook"]
+      }
+
+      {:ok, _recipe} = Recipes.create_recipe(recipe_attrs, user)
+
+      results = Recipes.search_recipes("italian")
+      assert length(results) == 1
+
+      results = Recipes.search_recipes("PASTA")
+      assert length(results) == 1
+    end
+
+    test "search_recipes/1 returns multiple matching recipes" do
+      user = user_fixture()
+
+      attrs1 = %{
+        name: "Chocolate Chip Cookies",
+        author: "Chef John",
+        prep_time_in_minutes: 20,
+        cook_time_in_minutes: 12,
+        ingredients: ["chocolate", "flour", "sugar"],
+        instructions: ["Mix", "Bake"]
+      }
+
+      attrs2 = %{
+        name: "Chocolate Cake",
+        author: "Chef Jane",
+        prep_time_in_minutes: 30,
+        cook_time_in_minutes: 45,
+        ingredients: ["chocolate", "flour", "eggs"],
+        instructions: ["Mix", "Bake"]
+      }
+
+      {:ok, _recipe1} = Recipes.create_recipe(attrs1, user)
+      {:ok, _recipe2} = Recipes.create_recipe(attrs2, user)
+
+      results = Recipes.search_recipes("chocolate")
+      assert length(results) == 2
+    end
+
+    test "search_recipes/1 returns empty list when no matches" do
+      user = user_fixture()
+
+      recipe_attrs = %{
+        name: "Pasta",
+        author: "Chef",
+        prep_time_in_minutes: 15,
+        cook_time_in_minutes: 20,
+        ingredients: ["pasta"],
+        instructions: ["Cook"]
+      }
+
+      {:ok, _recipe} = Recipes.create_recipe(recipe_attrs, user)
+
+      results = Recipes.search_recipes("nonexistent")
+      assert results == []
+    end
   end
 end

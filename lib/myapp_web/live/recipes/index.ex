@@ -5,25 +5,29 @@ defmodule MyappWeb.RecipeLive.Index do
   alias Myapp.Recipes.Recipe
 
   @impl true
-  def mount(_params, _session, socket) do
-    recipes = Recipes.list_recipes(1, 25)
-    {:ok, assign(socket, page: 1, per_page: 25, recipes: recipes)}
+  def mount(params, _session, socket) do
+    search = params["search"] || ""
+
+    recipes =
+      if search == "", do: Recipes.list_recipes(1, 25), else: Recipes.search_recipes(search)
+
+    {:ok, assign(socket, page: 1, per_page: 25, recipes: recipes, search: search)}
   end
 
   @impl true
-  @spec handle_params(nil | maybe_improper_list() | map(), any(), map()) :: {:noreply, map()}
   def handle_params(params, _url, socket) do
     page = (params["page"] || "1") |> String.to_integer()
-    {:noreply, apply_action(socket, socket.assigns.live_action, params, page)}
+    search = params["search"] || ""
+    {:noreply, apply_action(socket, socket.assigns.live_action, params, page, search)}
   end
 
-  defp apply_action(socket, :new, _params, _page) do
+  defp apply_action(socket, :new, _params, _page, _search) do
     socket
     |> assign(:page_title, "New Recipe")
     |> assign(:recipe, %Recipe{})
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}, _page) do
+  defp apply_action(socket, :edit, %{"id" => id}, _page, _search) do
     recipe = Recipes.get_recipe!(id)
 
     socket
@@ -31,14 +35,18 @@ defmodule MyappWeb.RecipeLive.Index do
     |> assign(:page_title, "Edit #{recipe.name}")
   end
 
-  defp apply_action(socket, :index, _params, page) do
-    recipes = Recipes.list_recipes(page, socket.assigns.per_page)
+  defp apply_action(socket, :index, _params, page, search) do
+    recipes =
+      if search == "",
+        do: Recipes.list_recipes(page, socket.assigns.per_page),
+        else: Recipes.search_recipes(search)
 
     socket
     |> assign(:page_title, "Recipes")
     |> assign(:recipe, nil)
     |> assign(:recipes, recipes)
     |> assign(:page, page)
+    |> assign(:search, search)
   end
 
   @impl true
@@ -71,6 +79,28 @@ defmodule MyappWeb.RecipeLive.Index do
         </.link>
       </:actions>
     </.header>
+
+    <div class="mt-4 mb-6">
+      <form phx-change="search" class="flex items-center gap-3">
+        <input
+          type="text"
+          name="search"
+          value={@search}
+          placeholder="Search by name, author, or ingredients..."
+          class="flex-1 max-w-md px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          phx-debounce="500"
+        />
+      </form>
+    </div>
+
+    <%= if @search != "" do %>
+      <div class="mb-4 text-sm text-zinc-600">
+        Showing results for "{@search}"
+        <.link patch={~p"/recipes?search="} class="ml-2 text-blue-600 hover:underline">
+          Clear search
+        </.link>
+      </div>
+    <% end %>
 
     <.table
       id="recipes"
@@ -136,13 +166,25 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   @impl true
+  def handle_event("search", %{"search" => search}, socket) do
+    {:noreply, push_patch(socket, to: ~p"/recipes?search=#{search}&page=1")}
+  end
+
+  @impl true
   def handle_event("delete_recipe", %{"id" => id}, socket) do
     recipe = Recipes.get_recipe!(id)
     {:ok, _} = Recipes.delete_recipe(recipe)
 
+    search = socket.assigns.search
+
+    recipes =
+      if search == "",
+        do: Recipes.list_recipes(socket.assigns.page, socket.assigns.per_page),
+        else: Recipes.search_recipes(search)
+
     {:noreply,
      socket
      |> put_flash(:info, "Recipe deleted successfully")
-     |> assign(:recipes, Recipes.list_recipes(socket.assigns.page, socket.assigns.per_page))}
+     |> assign(:recipes, recipes)}
   end
 end
