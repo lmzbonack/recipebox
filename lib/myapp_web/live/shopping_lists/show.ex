@@ -13,6 +13,28 @@ defmodule MyappWeb.ShoppingListsLive.Show do
   end
 
   @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :edit, _params) do
+    socket
+    |> assign(:page_title, "Edit #{socket.assigns.shopping_list.name}")
+  end
+
+  defp apply_action(socket, :show, _params) do
+    socket
+  end
+
+  @impl true
+  def handle_info({MyappWeb.ShoppingListLive.FormComponent, {:saved, shopping_list}}, socket) do
+    {:noreply,
+     socket
+     |> assign(shopping_list: ShoppingLists.get_shopping_list!(shopping_list.id))
+     |> assign(page_title: shopping_list.name)}
+  end
+
+  @impl true
   def handle_event("toggle-ingredient", %{"id" => ingredient_id}, socket) do
     {:noreply, push_event(socket, "update-checked-state", %{id: ingredient_id})}
   end
@@ -23,6 +45,11 @@ defmodule MyappWeb.ShoppingListsLive.Show do
     <.header>
       {@shopping_list.name}
       <:actions>
+        <%= if ShoppingLists.can_edit_shopping_list?(@current_user, @shopping_list) do %>
+          <.link patch={~p"/shopping-lists/#{@shopping_list.id}/details/edit"}>
+            <.button class="bg-yellow-500 text-black">Edit</.button>
+          </.link>
+        <% end %>
         <.link patch={~p"/shopping-lists"}>
           <.button>Back to Shopping Lists</.button>
         </.link>
@@ -142,6 +169,25 @@ defmodule MyappWeb.ShoppingListsLive.Show do
         parent.insertBefore(item, parent.firstChild);
       }
     </script>
+
+    <%= if @live_action == :edit do %>
+      <.modal
+        :if={@shopping_list}
+        id="shopping-list-modal"
+        show
+        on_cancel={JS.patch(~p"/shopping-lists/#{@shopping_list.id}")}
+      >
+        <.live_component
+          module={MyappWeb.ShoppingListLive.FormComponent}
+          id={@shopping_list.id}
+          title={@page_title}
+          action={@live_action}
+          shopping_list={@shopping_list}
+          patch={~p"/shopping-lists/#{@shopping_list.id}"}
+          current_user={@current_user}
+        />
+      </.modal>
+    <% end %>
     """
   end
 end

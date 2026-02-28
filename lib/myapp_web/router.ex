@@ -100,6 +100,7 @@ defmodule MyappWeb.Router do
     live_session :sl_owner,
       on_mount: [{MyappWeb.UserAuth, :ensure_authenticated}] do
       live "/shopping-lists/:id/edit", ShoppingListsLive.Index, :edit
+      live "/shopping-lists/:id/details/edit", ShoppingListsLive.Show, :edit
       live "/shopping-lists/:id", ShoppingListsLive.Show, :show
     end
   end
