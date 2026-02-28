@@ -8,7 +8,7 @@ defmodule Myapp.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Myapp", "contact@example.com"})
+      |> from({"Recipebox", "postmaster@mail.recipebox.dev"})
       |> subject(subject)
       |> text_body(body)
 
