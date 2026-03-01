@@ -25,7 +25,33 @@ import topbar from "../vendor/topbar"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: {
+    RecipeScrape: {
+      mounted() {
+        this.urlInput = document.getElementById('recipe-external-link');
+        if (this.urlInput) {
+          this.urlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              this.scrapeUrl();
+            }
+          });
+        }
+        document.addEventListener("scrape-url", (event) => {
+          this.scrapeUrl(event.detail);
+        });
+      },
+      scrapeUrl(url) {
+        url = url || this.urlInput.value;
+        if (url) {
+          this.pushEvent("scrape_recipe", {url: url, csrf_token: csrfToken}, (reply, ref) => {
+            console.log("Scrape response:", reply);
+          });
+        }
+      }
+    }
+  }
 })
 
 // Show progress bar on live navigation and form submits

@@ -104,6 +104,11 @@ if config_env() == :prod do
     api_key: System.get_env("MAILGUN_API_KEY"),
     domain: System.get_env("MAILGUN_DOMAIN")
 
+  # ## Configuring Cloudflare Browser Rendering for recipe scraping
+  config :myapp, :cloudflare,
+    account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
+    api_token: System.get_env("CLOUDFLARE_API_TOKEN")
+
   #
   # For this example you need include a HTTP client required by Swoosh API client.
   # Swoosh supports Hackney and Finch out of the box:
