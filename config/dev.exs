@@ -80,3 +80,8 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Cloudflare Browser Rendering for recipe scraping
+config :myapp, :cloudflare,
+  account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
+  api_token: System.get_env("CLOUDFLARE_API_TOKEN")
