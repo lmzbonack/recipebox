@@ -3,68 +3,74 @@ defmodule MyappWeb.RecipeLive.FormComponent do
 
   alias Myapp.Recipes
 
+  @impl true
   def render(assigns) do
     ~H"""
-    <div id="recipe-form-container" phx-hook="RecipeScrape">
+    <div id="recipe-form-container">
       <.header>
         {@title}
       </.header>
 
-      <div class="mb-6">
-        <label class="block text-sm font-semibold leading-6 text-zinc-800">
-          External Link
-        </label>
-        <div class="flex gap-2 mt-2">
-          <input
-            type="url"
-            id="recipe-external-link"
-            name="external_link"
-            value={@scrape_url || @recipe.external_link || ""}
-            phx-target={@myself}
-            phx-change="update_external_link"
-            class="flex-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-zinc-600 sm:text-sm sm:leading-6"
-            placeholder="https://example.com/recipe"
-          />
-          <%= if @action == :new do %>
-            <button
-              type="button"
-              class="px-3 py-2 text-sm font-semibold text-white bg-zinc-900 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              onclick="event.preventDefault(); var url = document.getElementById('recipe-external-link').value; if(url) { var event = new CustomEvent('scrape-url', { detail: url }); document.dispatchEvent(event); }"
-              disabled={@scrape_loading}
-            >
-              <%= if @scrape_loading do %>
-                <span class="flex items-center gap-2">
-                  <svg
-                    class="animate-spin h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
+      <%= if @action == :new do %>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold leading-6 text-zinc-800">
+            Import from URL
+          </label>
+          <form phx-submit="scrape_recipe" phx-target={@myself} class="mt-2">
+            <div class="flex gap-2">
+              <input
+                type="url"
+                id="recipe-external-link"
+                name="url"
+                value={@scrape_url || @recipe.external_link || ""}
+                class="flex-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-zinc-600 sm:text-sm sm:leading-6"
+                placeholder="https://example.com/recipe"
+              />
+              <button
+                type="submit"
+                class="px-3 py-2 text-sm font-semibold text-white bg-zinc-900 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={@scrape_loading}
+              >
+                <%= if @scrape_loading do %>
+                  <span class="flex items-center gap-2">
+                    <svg
+                      class="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                    </circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    >
-                    </path>
-                  </svg>
-                  Scraping...
-                </span>
-              <% else %>
-                Scrape
-              <% end %>
-            </button>
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      >
+                      </circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      >
+                      </path>
+                    </svg>
+                    Scraping...
+                  </span>
+                <% else %>
+                  Scrape
+                <% end %>
+              </button>
+            </div>
+          </form>
+          <%= if @scrape_status == :success do %>
+            <p class="mt-2 text-sm text-emerald-700">Scrape successful.</p>
+          <% end %>
+          <%= if @scrape_status == :failed do %>
+            <p class="mt-2 text-sm text-rose-700">Scrape failed.</p>
           <% end %>
         </div>
-      </div>
+      <% end %>
 
       <.simple_form
         for={@form}
@@ -77,6 +83,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
         <.input field={@form[:author]} type="text" label="Author" />
         <.input field={@form[:prep_time_in_minutes]} type="number" label="Prep Time (minutes)" />
         <.input field={@form[:cook_time_in_minutes]} type="number" label="Cook Time (minutes)" />
+        <.input field={@form[:external_link]} type="url" label="External Link" />
 
         <div class="space-y-2">
           <label class="block text-sm font-semibold leading-6 text-zinc-800">
@@ -165,6 +172,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     """
   end
 
+  @impl true
   def update(%{recipe: recipe} = assigns, socket) do
     changeset = Recipes.change_recipe(recipe)
 
@@ -175,6 +183,7 @@ defmodule MyappWeb.RecipeLive.FormComponent do
       |> assign(:instructions, recipe.instructions || [""])
       |> assign(:scrape_url, recipe.external_link)
       |> assign(:scrape_loading, false)
+      |> assign(:scrape_status, nil)
       |> assign_form(changeset)
 
     socket =
@@ -236,6 +245,34 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     |> assign_form(changeset)
   end
 
+  defp scrape_url(url) do
+    url =
+      if String.starts_with?(url, "http://") or String.starts_with?(url, "https://"),
+        do: url,
+        else: "https://" <> url
+
+    case Myapp.Scraping.scrape_recipe_url(url) do
+      {:ok, recipe_data} ->
+        %{success: true, data: recipe_data}
+
+      {:error, :missing_credentials} ->
+        %{success: false, error: "Cloudflare API credentials not configured"}
+
+      {:error, %{transport_error: reason}} ->
+        %{success: false, error: "Request timed out or failed: #{inspect(reason)}"}
+
+      {:error, reason} when is_atom(reason) ->
+        %{success: false, error: inspect(reason)}
+
+      {:error, %{status: status, body: body}} ->
+        %{success: false, error: "API error", status: status, details: body}
+
+      {:error, %{api_errors: errors}} ->
+        %{success: false, error: "API error", errors: errors}
+    end
+  end
+
+  @impl true
   def handle_event("validate", %{"recipe" => recipe_params}, socket) do
     recipe_params =
       Map.merge(recipe_params, %{
@@ -259,6 +296,19 @@ defmodule MyappWeb.RecipeLive.FormComponent do
       })
 
     save_recipe(socket, socket.assigns.action, recipe_params)
+  end
+
+  def handle_event("scrape_recipe", %{"url" => url}, socket) do
+    if url == "" or is_nil(url) do
+      {:noreply, assign(socket, :scrape_status, :failed)}
+    else
+      socket =
+        socket
+        |> assign(scrape_url: url, scrape_loading: true, scrape_status: nil)
+        |> start_async(:scrape_recipe, fn -> scrape_url(url) end)
+
+      {:noreply, socket}
+    end
   end
 
   def handle_event("add_ingredient", _, socket) do
@@ -321,21 +371,20 @@ defmodule MyappWeb.RecipeLive.FormComponent do
     end
   end
 
-  def handle_event("update_external_link", %{"external_link" => url}, socket) do
-    {:noreply, assign(socket, :scrape_url, url)}
-  end
+  @impl true
+  def handle_async(:scrape_recipe, {:ok, result}, socket) do
+    url = socket.assigns.scrape_url
+    socket =
+      if result.success do
+        scraped_data = Map.merge(result.data, %{scrape_url: url})
+        socket
+        |> apply_scraped_data(scraped_data)
+        |> assign(:scrape_status, :success)
+      else
+        assign(socket, :scrape_status, :failed)
+      end
 
-  def handle_event("scrape_recipe", %{"url" => url}, socket) do
-    if url == "" or is_nil(url) do
-      {:noreply, put_flash(socket, :error, "Please enter a URL")}
-    else
-      socket = assign(socket, :scrape_url, url)
-      {:noreply, assign(socket, :scrape_loading, true)}
-    end
-  end
-
-  def handle_event("scrape_recipe", _, socket) do
-    {:noreply, socket}
+    {:noreply, assign(socket, :scrape_loading, false)}
   end
 
   defp save_recipe(socket, :edit, recipe_params) do
