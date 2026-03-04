@@ -1,4 +1,7 @@
 import Config
+import Dotenvy
+
+source!([".env"])
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -21,6 +24,10 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  config :myapp, :cloudflare,
+    account_id: env!("CLOUDFLARE_ACCOUNT_ID", :string),
+    api_token: env!("CLOUDFLARE_API_TOKEN", :string)
+
   database_path =
     System.get_env("DATABASE_PATH") ||
       raise """
@@ -103,11 +110,6 @@ if config_env() == :prod do
     adapter: Swoosh.Adapters.Mailgun,
     api_key: System.get_env("MAILGUN_API_KEY"),
     domain: System.get_env("MAILGUN_DOMAIN")
-
-  # ## Configuring Cloudflare Browser Rendering for recipe scraping
-  config :myapp, :cloudflare,
-    account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
-    api_token: System.get_env("CLOUDFLARE_API_TOKEN")
 
   #
   # For this example you need include a HTTP client required by Swoosh API client.
