@@ -64,31 +64,6 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   @impl true
-  def handle_info({_ref, result}, socket) do
-    Task.shutdown(socket.assigns.scrape_task)
-
-    recipe_id = socket.assigns.recipe.id || :new
-    url = socket.assigns.scrape_url
-
-    if result.success do
-      scraped_data = Map.merge(result.data, %{scrape_url: url})
-
-      send_update(MyappWeb.RecipeLive.FormComponent,
-        id: recipe_id,
-        scraped_data: scraped_data,
-        scrape_loading: false
-      )
-    else
-      send_update(MyappWeb.RecipeLive.FormComponent,
-        id: recipe_id,
-        scrape_loading: false
-      )
-    end
-
-    {:noreply, assign(socket, scrape_task: nil)}
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <.header>
@@ -194,20 +169,6 @@ defmodule MyappWeb.RecipeLive.Index do
   end
 
   @impl true
-  def handle_event("scrape_recipe", %{"url" => url}, socket) do
-    recipe_id = socket.assigns.recipe.id || :new
-
-    send_update(MyappWeb.RecipeLive.FormComponent,
-      id: recipe_id,
-      scrape_loading: true
-    )
-
-    task = Task.async(fn -> scrape_url(url) end)
-
-    {:reply, %{status: :started}, assign(socket, scrape_task: task, scrape_url: url)}
-  end
-
-  @impl true
   def handle_event("delete_recipe", %{"id" => id}, socket) do
     recipe = Recipes.get_recipe!(id)
     {:ok, _} = Recipes.delete_recipe(recipe)
@@ -223,32 +184,5 @@ defmodule MyappWeb.RecipeLive.Index do
      socket
      |> put_flash(:info, "Recipe deleted successfully")
      |> assign(:recipes, recipes)}
-  end
-
-  defp scrape_url(url) do
-    url =
-      if String.starts_with?(url, "http://") or String.starts_with?(url, "https://"),
-        do: url,
-        else: "https://" <> url
-
-    case Myapp.Scraping.scrape_recipe_url(url) do
-      {:ok, recipe_data} ->
-        %{success: true, data: recipe_data}
-
-      {:error, :missing_credentials} ->
-        %{success: false, error: "Cloudflare API credentials not configured"}
-
-      {:error, %{transport_error: reason}} ->
-        %{success: false, error: "Request timed out or failed: #{inspect(reason)}"}
-
-      {:error, reason} when is_atom(reason) ->
-        %{success: false, error: inspect(reason)}
-
-      {:error, %{status: status, body: body}} ->
-        %{success: false, error: "API error", status: status, details: body}
-
-      {:error, %{api_errors: errors}} ->
-        %{success: false, error: "API error", errors: errors}
-    end
   end
 end
