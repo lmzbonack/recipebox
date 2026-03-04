@@ -185,5 +185,4 @@ defmodule MyappWeb.RecipeLive.Index do
      |> put_flash(:info, "Recipe deleted successfully")
      |> assign(:recipes, recipes)}
   end
-
 end

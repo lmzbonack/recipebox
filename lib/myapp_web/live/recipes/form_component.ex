@@ -374,9 +374,11 @@ defmodule MyappWeb.RecipeLive.FormComponent do
   @impl true
   def handle_async(:scrape_recipe, {:ok, result}, socket) do
     url = socket.assigns.scrape_url
+
     socket =
       if result.success do
         scraped_data = Map.merge(result.data, %{scrape_url: url})
+
         socket
         |> apply_scraped_data(scraped_data)
         |> assign(:scrape_status, :success)
