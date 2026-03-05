@@ -12,12 +12,12 @@
     </script>
   </head>
   <body class="bg-white">
-    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
+    <ul class="relative z-10 flex items-center gap-5 mx-4 mt-4 mr-8 py-3 bg-white shadow-sm rounded-lg justify-end">
       <%= if @current_user do %>
         <li>
           <.link
             href={~p"/recipes"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Recipes
           </.link>
@@ -25,7 +25,7 @@
         <li>
           <.link
             href={~p"/shopping-lists"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Shopping Lists
           </.link>
@@ -33,7 +33,7 @@
         <li>
           <.link
             href={~p"/users/settings"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Settings
           </.link>
@@ -42,7 +42,7 @@
           <.link
             href={~p"/users/log_out"}
             method="delete"
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Log out
           </.link>
@@ -51,7 +51,7 @@
         <li>
           <.link
             href={~p"/users/register"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Register
           </.link>
@@ -59,7 +59,7 @@
         <li>
           <.link
             href={~p"/users/log_in"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="text-base text-zinc-700 font-medium hover:text-zinc-900 px-3 py-2 rounded-md hover:bg-zinc-50 transition-colors"
           >
             Log in
           </.link>
