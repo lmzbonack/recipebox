@@ -7,6 +7,8 @@ defmodule Myapp.Application do
 
   @impl true
   def start(_type, _args) do
+    Myapp.Release.migrate()
+
     children = [
       MyappWeb.Telemetry,
       Myapp.Repo,
