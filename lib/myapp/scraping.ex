@@ -10,12 +10,12 @@ defmodule Myapp.Scraping do
   end
 
   defp do_scrape(base_url, api_key, url) do
-    endpoint = "#{base_url}extract?key=#{api_key}&url=#{URI.encode(url)}"
+    endpoint = "#{base_url}?url=#{URI.encode(url)}&key=#{api_key}"
 
     headers = [{"Content-Type", "application/json"}]
 
     case Finch.build(:get, endpoint, headers)
-         |> Finch.request(Myapp.Finch, receive_timeout: 60_000) do
+         |> Finch.request(Myapp.Finch, receive_timeout: 120_000) do
       {:ok, %{status: 200, body: body}} ->
         parse_response(body, url)
 
@@ -35,7 +35,7 @@ defmodule Myapp.Scraping do
       {:ok, %{"error" => error}} ->
         {:error, %{api_error: error}}
 
-      {:ok, data} ->
+      {:ok, %{"response" => data}} ->
         {:ok, Map.put(data, "external_link", original_url)}
 
       {:error, reason} ->
