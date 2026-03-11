@@ -81,7 +81,7 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Cloudflare Browser Rendering for recipe scraping
-config :myapp, :cloudflare,
-  account_id: System.get_env("CLOUDFLARE_ACCOUNT_ID"),
-  api_token: System.get_env("CLOUDFLARE_API_TOKEN")
+# Recipe Extractor Worker for recipe scraping
+config :myapp, :recipe_extractor,
+  url: System.get_env("RECIPE_EXTRACTOR_URL", "https://recipe-extractor.lmzbonack.workers.dev/"),
+  api_key: System.get_env("RECIPE_EXTRACTOR_API_KEY")
