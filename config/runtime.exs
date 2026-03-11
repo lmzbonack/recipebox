@@ -24,9 +24,9 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  config :myapp, :cloudflare,
-    account_id: env!("CLOUDFLARE_ACCOUNT_ID", :string),
-    api_token: env!("CLOUDFLARE_API_TOKEN", :string)
+  config :myapp, :recipe_extractor,
+    url: env!("RECIPE_EXTRACTOR_URL", :string),
+    api_key: env!("RECIPE_EXTRACTOR_API_KEY", :string)
 
   database_path =
     System.get_env("DATABASE_PATH") ||

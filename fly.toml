@@ -12,9 +12,8 @@ kill_signal = 'SIGTERM'
 [env]
   DATABASE_PATH = "/mnt/sqlite/myapp.db"
   PHX_HOST = 'recipebox.fly.dev'
+  RECIPE_EXTRACTOR_URL = 'https://recipe-extractor.lmzbonack.workers.dev/'
   PORT = '8080'
-  CLOUDFLARE_ACCOUNT_ID = ''
-  CLOUDFLARE_API_TOKEN = ''
 
 [mounts]
   source = "sqlite"
