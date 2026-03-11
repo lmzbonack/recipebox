@@ -15,7 +15,7 @@ defmodule Myapp.Scraping do
     headers = [{"Content-Type", "application/json"}]
 
     case Finch.build(:get, endpoint, headers)
-         |> Finch.request(Myapp.Finch, receive_timeout: 60_000) do
+         |> Finch.request(Myapp.Finch, receive_timeout: 120_000) do
       {:ok, %{status: 200, body: body}} ->
         parse_response(body, url)
 
