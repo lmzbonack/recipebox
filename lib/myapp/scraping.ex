@@ -38,6 +38,9 @@ defmodule Myapp.Scraping do
       {:ok, %{"response" => data}} ->
         {:ok, Map.put(data, "external_link", original_url)}
 
+      {:ok, data} when is_map(data) ->
+        {:ok, Map.put(data, "external_link", original_url)}
+
       {:error, reason} ->
         {:error, reason}
     end
