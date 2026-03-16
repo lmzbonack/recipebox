@@ -23,9 +23,38 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+// Wake Lock hook to prevent screen from sleeping on cooking view
+const WakeLock = {
+  mounted() {
+    this.requestWakeLock()
+    this.el.addEventListener("phx:disconnect", () => this.releaseWakeLock())
+    this.el.addEventListener("phx:reconnect", () => this.requestWakeLock())
+  },
+  destroyed() {
+    this.releaseWakeLock()
+  },
+  async requestWakeLock() {
+    if ("wakeLock" in navigator) {
+      try {
+        this.wakeLock = await navigator.wakeLock.request("screen")
+      } catch (err) {
+        console.log("Wake Lock error:", err)
+      }
+    }
+  },
+  async releaseWakeLock() {
+    if (this.wakeLock) {
+      await this.wakeLock.release()
+      this.wakeLock = null
+    }
+  }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: { WakeLock }
 })
 
 // Show progress bar on live navigation and form submits
