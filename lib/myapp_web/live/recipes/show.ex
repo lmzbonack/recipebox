@@ -83,6 +83,9 @@ defmodule MyappWeb.RecipeLive.Show do
       </.link>
       <:subtitle>By: {@recipe.author}</:subtitle>
       <:actions>
+        <.link navigate={~p"/recipes/#{@recipe.id}/cook"}>
+          <.button class="bg-blue-600 text-white">Cook</.button>
+        </.link>
         <%= if Recipes.can_edit_recipe?(@current_user, @recipe) do %>
           <.link patch={~p"/recipes/#{@recipe.id}/details/edit"}>
             <.button class="bg-yellow-500 text-black">Edit</.button>
