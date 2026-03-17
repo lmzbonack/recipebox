@@ -79,7 +79,6 @@ defmodule MyappWeb.Router do
       live "/recipes", RecipeLive.Index, :index
       live "/recipes/new", RecipeLive.Index, :new
       live "/recipes/:id", RecipeLive.Show, :show
-      live "/recipes/:id/cook", RecipeLive.Cooking, :show
       live "/shopping-lists", ShoppingListsLive.Index, :index
       live "/shopping-lists/new", ShoppingListsLive.Index, :new
     end
@@ -115,6 +114,7 @@ defmodule MyappWeb.Router do
       on_mount: [{MyappWeb.UserAuth, :mount_current_user}] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
+      live "/recipes/:id/cook", RecipeLive.Cooking, :show
     end
   end
 end
