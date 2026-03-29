@@ -90,7 +90,11 @@ defmodule MyappWeb.ShoppingListsLive.Show do
       <% else %>
         <%= for recipe <- @shopping_list.recipes do %>
           <div class="mt-6">
-            <h3 class="text-md font-medium leading-8 text-zinc-700">{recipe.name}</h3>
+            <h3 class="text-md font-medium leading-8 text-zinc-700">
+              <.link navigate={~p"/recipes/#{recipe.id}"} class="hover:underline">
+                {recipe.name}
+              </.link>
+            </h3>
             <ul class="mt-2 space-y-2" id={"recipe-#{recipe.id}-ingredients"} phx-update="ignore">
               <%= for ingredient <- recipe.ingredients do %>
                 <li
