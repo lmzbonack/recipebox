@@ -132,7 +132,16 @@ defmodule MyappWeb.RecipeLive.Cooking do
           ← Back to recipe
         </.link>
 
-        <h1 class="text-2xl font-bold text-zinc-800 mb-2">{@recipe.name}</h1>
+        <h1 class="text-2xl font-bold text-zinc-800 mb-2">
+          <a
+            href={@recipe.external_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-blue-600 hover:underline"
+          >
+            {@recipe.name}
+          </a>
+        </h1>
         <p class="text-zinc-600 mb-6">By: {@recipe.author}</p>
 
         <div class="flex gap-2 mb-8">
