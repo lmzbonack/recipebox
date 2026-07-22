@@ -186,13 +186,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
     <script>
       window.addEventListener("phx:init-checked-state", (e) => {
-        const listId = e.detail.id;
-        const storageKey = `shopping-list-${listId}`;
-        const checkedItems = e.detail.checked || [];
-
-        localStorage.setItem(storageKey, JSON.stringify(checkedItems));
-
-        checkedItems.forEach(id => {
+        (e.detail.checked || []).forEach(id => {
           const checkbox = document.querySelector(`input[phx-value-id="${id}"]`);
           if (checkbox) {
             checkbox.checked = true;
@@ -205,11 +199,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
       window.addEventListener("phx:update-checked-state", (e) => {
         const itemId = e.detail.id;
-        const listId = window.location.pathname.split('/').pop();
-        const storageKey = `shopping-list-${listId}`;
         const checkedItems = e.detail.checked || [];
-
-        localStorage.setItem(storageKey, JSON.stringify(checkedItems));
 
         const checkbox = document.querySelector(`input[phx-value-id="${itemId}"]`);
         if (checkbox) {
@@ -226,12 +216,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
         }
       });
 
-      window.addEventListener("phx:reset-checked-state", (e) => {
-        const listId = e.detail.id;
-        const storageKey = `shopping-list-${listId}`;
-
-        localStorage.removeItem(storageKey);
-
+      window.addEventListener("phx:reset-checked-state", () => {
         document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
           cb.checked = false;
         });
