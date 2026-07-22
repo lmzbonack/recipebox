@@ -8,8 +8,15 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
     {:ok,
      socket
-     |> assign(shopping_list: shopping_list, page_title: shopping_list.name)
-     |> push_event("init-checked-state", %{id: id})}
+     |> assign(
+       shopping_list: shopping_list,
+       page_title: shopping_list.name,
+       show_reset_modal: false
+     )
+     |> push_event("init-checked-state", %{
+       id: id,
+       checked: shopping_list.checked_ingredients || []
+     })}
   end
 
   @impl true
@@ -36,7 +43,47 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
   @impl true
   def handle_event("toggle-ingredient", %{"id" => ingredient_id}, socket) do
-    {:noreply, push_event(socket, "update-checked-state", %{id: ingredient_id})}
+    shopping_list = socket.assigns.shopping_list
+
+    if ShoppingLists.can_edit_shopping_list?(socket.assigns.current_user, shopping_list) do
+      {:ok, updated_list} = ShoppingLists.toggle_checked_ingredient(shopping_list, ingredient_id)
+
+      {:noreply,
+       socket
+       |> assign(:shopping_list, updated_list)
+       |> push_event("update-checked-state", %{
+         id: ingredient_id,
+         checked: updated_list.checked_ingredients || []
+       })}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("show-reset-modal", _, socket) do
+    {:noreply, assign(socket, :show_reset_modal, true)}
+  end
+
+  @impl true
+  def handle_event("hide-reset-modal", _, socket) do
+    {:noreply, assign(socket, :show_reset_modal, false)}
+  end
+
+  @impl true
+  def handle_event("reset-all", _, socket) do
+    shopping_list = socket.assigns.shopping_list
+
+    if ShoppingLists.can_edit_shopping_list?(socket.assigns.current_user, shopping_list) do
+      {:ok, updated_list} = ShoppingLists.clear_checked_ingredients(shopping_list)
+
+      {:noreply,
+       socket
+       |> assign(shopping_list: updated_list, show_reset_modal: false)
+       |> push_event("reset-checked-state", %{id: updated_list.id})}
+    else
+      {:noreply, assign(socket, :show_reset_modal, false)}
+    end
   end
 
   @impl true
@@ -49,12 +96,28 @@ defmodule MyappWeb.ShoppingListsLive.Show do
           <.link patch={~p"/shopping-lists/#{@shopping_list.id}/details/edit"}>
             <.button class="bg-yellow-500 text-black">Edit</.button>
           </.link>
+          <.button phx-click="show-reset-modal" class="bg-red-500 text-white">
+            Reset All
+          </.button>
         <% end %>
         <.link patch={~p"/shopping-lists"}>
           <.button>Back to Shopping Lists</.button>
         </.link>
       </:actions>
     </.header>
+
+    <.modal
+      :if={@show_reset_modal}
+      id="reset-confirm-modal"
+      show
+      on_cancel={JS.push("hide-reset-modal")}
+    >
+      <p class="text-zinc-600">Are you sure you want to uncheck all items?</p>
+      <div class="mt-6 flex items-center gap-3">
+        <.button phx-click="hide-reset-modal">Cancel</.button>
+        <.button phx-click="reset-all" class="bg-red-500 text-white">Yes, Reset All</.button>
+      </div>
+    </.modal>
 
     <div class="mt-10">
       <h2 class="text-lg font-semibold leading-8 text-zinc-800">Additional Ingredients</h2>
@@ -125,9 +188,10 @@ defmodule MyappWeb.ShoppingListsLive.Show do
       window.addEventListener("phx:init-checked-state", (e) => {
         const listId = e.detail.id;
         const storageKey = `shopping-list-${listId}`;
-        const checkedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        const checkedItems = e.detail.checked || [];
 
-        // Apply checked state and move items
+        localStorage.setItem(storageKey, JSON.stringify(checkedItems));
+
         checkedItems.forEach(id => {
           const checkbox = document.querySelector(`input[phx-value-id="${id}"]`);
           if (checkbox) {
@@ -143,24 +207,39 @@ defmodule MyappWeb.ShoppingListsLive.Show do
         const itemId = e.detail.id;
         const listId = window.location.pathname.split('/').pop();
         const storageKey = `shopping-list-${listId}`;
-        const checkedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-        const checkbox = document.querySelector(`input[phx-value-id="${itemId}"]`);
-        const item = checkbox.closest('.ingredient-item');
-
-        if (checkbox.checked) {
-          checkedItems.push(itemId);
-          item.style.opacity = "0.6";
-          moveItemToBottom(item);
-        } else {
-          const index = checkedItems.indexOf(itemId);
-          if (index > -1) {
-            checkedItems.splice(index, 1);
-          }
-          item.style.opacity = "1";
-          moveItemToTop(item);
-        }
+        const checkedItems = e.detail.checked || [];
 
         localStorage.setItem(storageKey, JSON.stringify(checkedItems));
+
+        const checkbox = document.querySelector(`input[phx-value-id="${itemId}"]`);
+        if (checkbox) {
+          const item = checkbox.closest('.ingredient-item');
+          if (checkedItems.includes(itemId)) {
+            checkbox.checked = true;
+            item.style.opacity = "0.6";
+            moveItemToBottom(item);
+          } else {
+            checkbox.checked = false;
+            item.style.opacity = "1";
+            moveItemToTop(item);
+          }
+        }
+      });
+
+      window.addEventListener("phx:reset-checked-state", (e) => {
+        const listId = e.detail.id;
+        const storageKey = `shopping-list-${listId}`;
+
+        localStorage.removeItem(storageKey);
+
+        document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
+          cb.checked = false;
+        });
+
+        document.querySelectorAll('.ingredient-item').forEach(item => {
+          item.style.opacity = "1";
+          moveItemToTop(item);
+        });
       });
 
       function moveItemToBottom(item) {

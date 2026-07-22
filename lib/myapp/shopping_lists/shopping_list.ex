@@ -5,6 +5,7 @@ defmodule Myapp.ShoppingLists.ShoppingList do
   schema "shopping_list" do
     field :name, :string
     field :ingredients, {:array, :string}
+    field :checked_ingredients, {:array, :string}, default: []
     belongs_to :created_by, Myapp.Accounts.User
 
     many_to_many :recipes, Myapp.Recipes.Recipe,
@@ -16,7 +17,7 @@ defmodule Myapp.ShoppingLists.ShoppingList do
 
   def changeset(shopping_list, attrs) do
     shopping_list
-    |> cast(attrs, [:name, :ingredients])
+    |> cast(attrs, [:name, :ingredients, :checked_ingredients])
     |> validate_required([:name])
     |> cast_assoc(:recipes, with: &Myapp.Recipes.Recipe.changeset/2)
   end

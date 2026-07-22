@@ -111,6 +111,36 @@ defmodule Myapp.ShoppingListsTest do
       assert hd(updated_list.recipes).id == recipe.id
     end
 
+    test "toggle_checked_ingredient/2 adds an ingredient to checked list", %{user: user} do
+      {:ok, shopping_list} = ShoppingLists.create_shopping_list(@valid_attrs, user)
+      assert shopping_list.checked_ingredients == [] || shopping_list.checked_ingredients == nil
+
+      {:ok, updated} = ShoppingLists.toggle_checked_ingredient(shopping_list, "additional-Milk")
+      assert updated.checked_ingredients == ["additional-Milk"]
+
+      {:ok, updated_again} = ShoppingLists.toggle_checked_ingredient(updated, "additional-Eggs")
+      assert "additional-Eggs" in updated_again.checked_ingredients
+    end
+
+    test "toggle_checked_ingredient/2 removes an ingredient from checked list", %{user: user} do
+      {:ok, shopping_list} = ShoppingLists.create_shopping_list(@valid_attrs, user)
+
+      {:ok, checked_once} =
+        ShoppingLists.toggle_checked_ingredient(shopping_list, "additional-Milk")
+
+      {:ok, updated} = ShoppingLists.toggle_checked_ingredient(checked_once, "additional-Milk")
+      refute "additional-Milk" in (updated.checked_ingredients || [])
+    end
+
+    test "clear_checked_ingredients/1 removes all checked ingredients", %{user: user} do
+      {:ok, shopping_list} = ShoppingLists.create_shopping_list(@valid_attrs, user)
+      {:ok, checked} = ShoppingLists.toggle_checked_ingredient(shopping_list, "additional-Milk")
+      {:ok, checked} = ShoppingLists.toggle_checked_ingredient(checked, "additional-Eggs")
+
+      {:ok, cleared} = ShoppingLists.clear_checked_ingredients(checked)
+      assert cleared.checked_ingredients == []
+    end
+
     test "remove_recipe_from_shopping_list/2 removes a recipe from shopping list", %{user: user} do
       {:ok, shopping_list} = ShoppingLists.create_shopping_list(@valid_attrs, user)
 

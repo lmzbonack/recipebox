@@ -102,4 +102,32 @@ defmodule Myapp.ShoppingLists do
   def can_edit_shopping_list?(%User{id: user_id}, %ShoppingList{created_by_id: created_by_id}) do
     user_id == created_by_id
   end
+
+  @doc """
+  Toggles a checked ingredient ID for a shopping list.
+  If the ingredient ID is already checked, it is unchecked; otherwise it is checked.
+  """
+  def toggle_checked_ingredient(%ShoppingList{} = shopping_list, ingredient_id) do
+    current = shopping_list.checked_ingredients || []
+
+    updated =
+      if ingredient_id in current do
+        List.delete(current, ingredient_id)
+      else
+        [ingredient_id | current]
+      end
+
+    shopping_list
+    |> ShoppingList.changeset(%{checked_ingredients: updated})
+    |> Repo.update()
+  end
+
+  @doc """
+  Clears all checked ingredients for a shopping list.
+  """
+  def clear_checked_ingredients(%ShoppingList{} = shopping_list) do
+    shopping_list
+    |> ShoppingList.changeset(%{checked_ingredients: []})
+    |> Repo.update()
+  end
 end
