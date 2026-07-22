@@ -12,11 +12,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
        shopping_list: shopping_list,
        page_title: shopping_list.name,
        show_reset_modal: false
-     )
-     |> push_event("init-checked-state", %{
-       id: id,
-       checked: shopping_list.checked_ingredients || []
-     })}
+     )}
   end
 
   @impl true
@@ -48,13 +44,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
     if ShoppingLists.can_edit_shopping_list?(socket.assigns.current_user, shopping_list) do
       {:ok, updated_list} = ShoppingLists.toggle_checked_ingredient(shopping_list, ingredient_id)
 
-      {:noreply,
-       socket
-       |> assign(:shopping_list, updated_list)
-       |> push_event("update-checked-state", %{
-         id: ingredient_id,
-         checked: updated_list.checked_ingredients || []
-       })}
+      {:noreply, socket |> assign(:shopping_list, updated_list)}
     else
       {:noreply, socket}
     end
@@ -77,10 +67,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
     if ShoppingLists.can_edit_shopping_list?(socket.assigns.current_user, shopping_list) do
       {:ok, updated_list} = ShoppingLists.clear_checked_ingredients(shopping_list)
 
-      {:noreply,
-       socket
-       |> assign(shopping_list: updated_list, show_reset_modal: false)
-       |> push_event("reset-checked-state", %{id: updated_list.id})}
+      {:noreply, socket |> assign(shopping_list: updated_list, show_reset_modal: false)}
     else
       {:noreply, assign(socket, :show_reset_modal, false)}
     end
@@ -88,6 +75,14 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
   @impl true
   def render(assigns) do
+    checked = assigns.shopping_list.checked_ingredients || []
+
+    assigns
+    |> assign(:checked, checked)
+    |> render_with_checked()
+  end
+
+  defp render_with_checked(assigns) do
     ~H"""
     <.header>
       {@shopping_list.name}
@@ -121,13 +116,14 @@ defmodule MyappWeb.ShoppingListsLive.Show do
 
     <div class="mt-10">
       <h2 class="text-lg font-semibold leading-8 text-zinc-800">Additional Ingredients</h2>
-      <ul class="mt-4 space-y-2" id="additional-ingredients" phx-update="ignore">
+      <ul class="mt-4 space-y-2" id="additional-ingredients">
         <%= if Enum.empty?(@shopping_list.ingredients) do %>
           <li class="text-zinc-600">No additional ingredients</li>
         <% else %>
-          <%= for ingredient <- @shopping_list.ingredients do %>
+          <%= for ingredient <- Enum.sort_by(@shopping_list.ingredients, fn i -> if i in @checked, do: 1, else: 0 end) do %>
+            <% is_checked = ingredient in @checked %>
             <li
-              class="ingredient-item flex items-center space-x-3 text-zinc-600"
+              class={"ingredient-item flex items-center space-x-3 #{if is_checked, do: "text-zinc-400 line-through", else: "text-zinc-600"}"}
               data-id={"additional-#{ingredient}"}
             >
               <input
@@ -136,6 +132,7 @@ defmodule MyappWeb.ShoppingListsLive.Show do
                 class="ingredient-checkbox h-4 w-4 rounded border-gray-300"
                 phx-click="toggle-ingredient"
                 phx-value-id={"additional-#{ingredient}"}
+                checked={is_checked}
               />
               <label for={"check-#{ingredient}"} class="ingredient-label flex-1">
                 {ingredient}
@@ -158,18 +155,21 @@ defmodule MyappWeb.ShoppingListsLive.Show do
                 {recipe.name}
               </.link>
             </h3>
-            <ul class="mt-2 space-y-2" id={"recipe-#{recipe.id}-ingredients"} phx-update="ignore">
-              <%= for ingredient <- recipe.ingredients do %>
+            <ul class="mt-2 space-y-2" id={"recipe-#{recipe.id}-ingredients"}>
+              <%= for ingredient <- Enum.sort_by(recipe.ingredients, fn i -> checked_id = "recipe-#{recipe.id}-#{i}"; if checked_id in @checked, do: 1, else: 0 end) do %>
+                <% checked_id = "recipe-#{recipe.id}-#{ingredient}" %>
+                <% is_checked = checked_id in @checked %>
                 <li
-                  class="ingredient-item flex items-center space-x-3 text-zinc-600"
-                  data-id={"recipe-#{recipe.id}-#{ingredient}"}
+                  class={"ingredient-item flex items-center space-x-3 #{if is_checked, do: "text-zinc-400 line-through", else: "text-zinc-600"}"}
+                  data-id={checked_id}
                 >
                   <input
                     type="checkbox"
                     id={"check-#{recipe.id}-#{ingredient}"}
                     class="ingredient-checkbox h-4 w-4 rounded border-gray-300"
                     phx-click="toggle-ingredient"
-                    phx-value-id={"recipe-#{recipe.id}-#{ingredient}"}
+                    phx-value-id={checked_id}
+                    checked={is_checked}
                   />
                   <label for={"check-#{recipe.id}-#{ingredient}"} class="ingredient-label flex-1">
                     {ingredient}
@@ -183,60 +183,6 @@ defmodule MyappWeb.ShoppingListsLive.Show do
     </div>
 
     <.back navigate={~p"/shopping-lists"}>Back to shopping lists</.back>
-
-    <script>
-      window.addEventListener("phx:init-checked-state", (e) => {
-        (e.detail.checked || []).forEach(id => {
-          const checkbox = document.querySelector(`input[phx-value-id="${id}"]`);
-          if (checkbox) {
-            checkbox.checked = true;
-            const item = checkbox.closest('.ingredient-item');
-            item.style.opacity = "0.6";
-            moveItemToBottom(item);
-          }
-        });
-      });
-
-      window.addEventListener("phx:update-checked-state", (e) => {
-        const itemId = e.detail.id;
-        const checkedItems = e.detail.checked || [];
-
-        const checkbox = document.querySelector(`input[phx-value-id="${itemId}"]`);
-        if (checkbox) {
-          const item = checkbox.closest('.ingredient-item');
-          if (checkedItems.includes(itemId)) {
-            checkbox.checked = true;
-            item.style.opacity = "0.6";
-            moveItemToBottom(item);
-          } else {
-            checkbox.checked = false;
-            item.style.opacity = "1";
-            moveItemToTop(item);
-          }
-        }
-      });
-
-      window.addEventListener("phx:reset-checked-state", () => {
-        document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
-          cb.checked = false;
-        });
-
-        document.querySelectorAll('.ingredient-item').forEach(item => {
-          item.style.opacity = "1";
-          moveItemToTop(item);
-        });
-      });
-
-      function moveItemToBottom(item) {
-        const parent = item.parentElement;
-        parent.appendChild(item);
-      }
-
-      function moveItemToTop(item) {
-        const parent = item.parentElement;
-        parent.insertBefore(item, parent.firstChild);
-      }
-    </script>
 
     <%= if @live_action == :edit do %>
       <.modal
