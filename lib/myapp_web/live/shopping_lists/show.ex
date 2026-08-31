@@ -124,14 +124,14 @@ defmodule MyappWeb.ShoppingListsLive.Show do
             <% is_checked = ingredient in @checked %>
             <li
               class={"ingredient-item flex items-center space-x-3 #{if is_checked, do: "text-zinc-400 line-through", else: "text-zinc-600"}"}
-              data-id={"additional-#{ingredient}"}
+              data-id={ingredient}
             >
               <input
                 type="checkbox"
                 id={"check-#{ingredient}"}
                 class="ingredient-checkbox h-4 w-4 rounded border-gray-300"
                 phx-click="toggle-ingredient"
-                phx-value-id={"additional-#{ingredient}"}
+                phx-value-id={ingredient}
                 checked={is_checked}
               />
               <label for={"check-#{ingredient}"} class="ingredient-label flex-1">
